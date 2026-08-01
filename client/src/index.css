@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: radial-gradient(circle at top, #182144 0%, #0f1424 55%, #0a0e1c 100%);
+  color: #f3f4f8;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2b3559;
+  border-radius: 8px;
+}
+
+.font-display {
+  font-family: 'Baloo 2', system-ui, sans-serif;
+}
+
+/* Used via an inline `animation` style on movable tokens (Token.jsx), not a
+   Tailwind `animate-*` class — kept as plain CSS so Tailwind's content-based
+   purge never strips it from the production build. */
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(242, 163, 65, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(242, 163, 65, 0);
+  }
+}

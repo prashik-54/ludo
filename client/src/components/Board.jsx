@@ -1,0 +1,226 @@
+import React, { useMemo } from 'react';
+import {
+  GRID_SIZE,
+  TRACK_CELLS,
+  HOME_COLUMNS,
+  YARD_BLOCKS,
+  isSafeTrackCell,
+  resolveTokenCell,
+} from '../utils/boardLayout';
+import { COLOR_HEX, COLORS } from '../utils/constants';
+import Token from './Token';
+
+const YARD_TINT = {
+  red: 'bg-ludo-red/90',
+  green: 'bg-ludo-green/90',
+  yellow: 'bg-ludo-yellow/90',
+  blue: 'bg-ludo-blue/90',
+};
+
+function cellKey(row, col) {
+  return `${row}-${col}`;
+}
+
+export default function Board({ game, selfColor, onTokenClick }) {
+  const trackCellSet = useMemo(() => {
+    const map = new Map();
+    TRACK_CELLS.forEach(([r, c], idx) => map.set(cellKey(r, c), idx));
+    return map;
+  }, []);
+
+  const homeCellColor = useMemo(() => {
+    const map = new Map();
+    COLORS.forEach((color) => {
+      HOME_COLUMNS[color].forEach(([r, c]) => map.set(cellKey(r, c), color));
+    });
+    return map;
+  }, []);
+
+  // Group tokens by the cell they currently occupy, so we can stack them
+  // neatly if more than one lands on the same square.
+  const tokensByCell = useMemo(() => {
+    const map = new Map();
+    if (!game) return map;
+    COLORS.forEach((color) => {
+      const tokens = game.tokens[color];
+      if (!tokens) return;
+      tokens.forEach((token, yardIndex) => {
+        if (token.state === 'home') return; // rendered in center hub instead
+        const [row, col] = resolveTokenCell(color, token.steps, yardIndex);
+        const key = cellKey(row, col);
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push(token);
+      });
+    });
+    return map;
+  }, [game]);
+
+  const movable = game?.movableTokens || [];
+  const isMyTurn = game && game.currentTurnPlayerId && selfColor;
+
+  const cells = [];
+  for (let row = 0; row < GRID_SIZE; row += 1) {
+    for (let col = 0; col < GRID_SIZE; col += 1) {
+      const key = cellKey(row, col);
+      const isCenter = row >= 6 && row <= 8 && col >= 6 && col <= 8;
+      const inYardBlock = Object.entries(YARD_BLOCKS).find(
+        ([, b]) => row >= b.rowStart && row < b.rowStart + 6 && col >= b.colStart && col < b.colStart + 6
+      );
+
+      if (inYardBlock) continue; // handled separately below
+
+      // Every cell we DO push must be explicitly pinned to its (row, col)
+      // grid position. The grid's children are built by skipping large
+      // blocks (yards, most of the center) out of a plain top-left-to-
+      // bottom-right scan, so relying on CSS Grid's implicit auto-placement
+      // (i.e. leaving gridColumn/gridRow unset) shifts every cell after a
+      // skip out of alignment — that misalignment between the background
+      // squares and the tokens (which ARE positioned correctly, by percent)
+      // is what makes the board look broken. Pinning position explicitly
+      // fixes it regardless of which cells get skipped above.
+      const gridPos = { gridColumnStart: col + 1, gridRowStart: row + 1 };
+
+      const trackIdx = trackCellSet.get(key);
+      const homeColor = homeCellColor.get(key);
+      const isTrack = trackIdx !== undefined;
+      const isHomeLane = homeColor !== undefined;
+
+      // The true center hub is only the cells that belong to neither a
+      // track nor a home lane — the four squares where each color's home
+      // column meets the middle (e.g. red's [7,6]) are real, colored
+      // squares and must still be drawn, not swallowed by the hub cutout.
+      if (isCenter && !isHomeLane) continue;
+
+      if (!isTrack && !isHomeLane) {
+        cells.push(<div key={key} className="bg-board-bg" style={gridPos} />);
+        continue;
+      }
+
+      const isSafe = isTrack && isSafeTrackCell(trackIdx);
+      const isStart = isTrack && [0, 13, 26, 39].includes(trackIdx);
+      const startColor = isStart
+        ? COLORS[[0, 13, 26, 39].indexOf(trackIdx)]
+        : null;
+
+      let bg = 'bg-[#f4f1ea]';
+      if (isHomeLane) bg = '';
+
+      cells.push(
+        <div
+          key={key}
+          className={`relative border border-black/10 flex items-center justify-center ${bg}`}
+          style={{
+            ...gridPos,
+            ...(isHomeLane
+              ? { backgroundColor: COLOR_HEX[homeColor] }
+              : startColor
+              ? { backgroundColor: `${COLOR_HEX[startColor]}33` }
+              : undefined),
+          }}
+        >
+          {isSafe && (
+            <span className="text-[8px] sm:text-xs opacity-60 select-none">★</span>
+          )}
+        </div>
+      );
+    }
+  }
+
+  return (
+    <div className="w-full min-w-0 aspect-square max-w-[640px] mx-auto select-none">
+      <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border-4 border-board-border bg-[#f4f1ea]">
+        {/* base grid of track + neutral cells */}
+        <div
+          className="absolute inset-0 grid"
+          style={{
+            gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
+            gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
+          }}
+        >
+          {cells}
+        </div>
+
+        {/* yard blocks */}
+        {COLORS.map((color) => {
+          const b = YARD_BLOCKS[color];
+          return (
+            <div
+              key={color}
+              className={`absolute ${YARD_TINT[color]} rounded-xl m-[2%]`}
+              style={{
+                top: `${(b.rowStart / GRID_SIZE) * 100}%`,
+                left: `${(b.colStart / GRID_SIZE) * 100}%`,
+                width: `${(6 / GRID_SIZE) * 100}%`,
+                height: `${(6 / GRID_SIZE) * 100}%`,
+              }}
+            >
+              <div className="w-[78%] h-[78%] bg-[#f4f1ea] rounded-lg absolute top-[11%] left-[11%] grid grid-cols-2 grid-rows-2 place-items-center">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="w-[55%] h-[55%] rounded-full border-2"
+                    style={{ borderColor: COLOR_HEX[color], backgroundColor: `${COLOR_HEX[color]}22` }}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* center home hub — four triangles pointing inward */}
+        <div
+          className="absolute"
+          style={{
+            top: `${(6 / GRID_SIZE) * 100}%`,
+            left: `${(6 / GRID_SIZE) * 100}%`,
+            width: `${(3 / GRID_SIZE) * 100}%`,
+            height: `${(3 / GRID_SIZE) * 100}%`,
+          }}
+        >
+          <div className="relative w-full h-full rotate-45 overflow-hidden rounded-sm">
+            <div className="absolute inset-0" style={{ background: `conic-gradient(${COLOR_HEX.red} 0deg 90deg, ${COLOR_HEX.blue} 90deg 180deg, ${COLOR_HEX.yellow} 180deg 270deg, ${COLOR_HEX.green} 270deg 360deg)` }} />
+          </div>
+          {/* finished tokens stack here */}
+          <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-[1px] p-1">
+            {game &&
+              COLORS.flatMap((color) =>
+                (game.tokens[color] || [])
+                  .filter((t) => t.state === 'home')
+                  .map((t) => (
+                    <div
+                      key={t.id}
+                      className="w-[18%] h-[18%] rounded-full border border-white/70 shadow"
+                      style={{ backgroundColor: COLOR_HEX[color] }}
+                    />
+                  ))
+              )}
+          </div>
+        </div>
+
+        {/* tokens on the track / home lanes / yards */}
+        {game &&
+          Array.from(tokensByCell.entries()).map(([key, tokens]) => {
+            const [row, col] = key.split('-').map(Number);
+            return tokens.map((token, i) => {
+              const offset = tokens.length > 1 ? (i - (tokens.length - 1) / 2) * 9 : 0;
+              const canMove = isMyTurn && movable.includes(token.id) && token.color === selfColor;
+              return (
+                <Token
+                  key={token.id}
+                  color={token.color}
+                  row={row}
+                  col={col}
+                  offsetPct={offset}
+                  highlighted={canMove}
+                  onClick={canMove ? () => onTokenClick(token.id) : undefined}
+                />
+              );
+            });
+          })}
+
+        {/* yard tokens (not yet started) rendered via same cell map since
+            resolveTokenCell places them at their yard slot coordinates */}
+      </div>
+    </div>
+  );
+}
