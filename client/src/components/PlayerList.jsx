@@ -5,7 +5,7 @@ export default function PlayerList({ room, game, selfId }) {
   const players = room?.players || [];
 
   return (
-    <div className="bg-board-panel rounded-2xl p-4 shadow-lg border border-board-border">
+    <div className="glass-panel rounded-2xl p-4 shadow-lg">
       <h3 className="font-display text-sm tracking-wide text-white/70 mb-3">PLAYERS</h3>
       <ul className="flex flex-col gap-2">
         {players.map((p) => {

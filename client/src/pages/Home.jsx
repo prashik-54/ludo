@@ -51,30 +51,31 @@ export default function Home() {
         </h1>
         <p className="text-white/50 mb-10">Create a room, share the code, and play with friends in real time.</p>
 
-        <div className="bg-board-panel border border-board-border rounded-3xl p-6 shadow-2xl">
-          <label className="block text-left text-xs uppercase tracking-wide text-white/40 mb-1.5">
+        <div className="glass-panel rounded-3xl p-6 shadow-2xl">
+          <label htmlFor="player-name" className="block text-left text-xs uppercase tracking-wide text-white/40 mb-1.5">
             Your name
           </label>
           <input
+            id="player-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={20}
             placeholder="e.g. Alex"
-            className="w-full bg-board-panelLight rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-accent mb-5"
+            className="w-full bg-board-panelLight/80 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-accent mb-5 transition-shadow"
           />
 
           {mode === 'home' && (
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => setMode('create')}
-                className="bg-accent text-board-bg font-semibold rounded-xl py-3 hover:scale-[1.02] active:scale-95 transition-transform"
+                className="btn-gradient text-board-bg font-semibold rounded-xl py-3 hover:scale-[1.02] active:scale-95 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-board-panel"
               >
                 Create Room
               </button>
               <button
                 onClick={() => setMode('join')}
-                className="bg-board-panelLight text-white font-semibold rounded-xl py-3 hover:scale-[1.02] active:scale-95 transition-transform"
+                className="glass-panel-light text-white font-semibold rounded-xl py-3 hover:scale-[1.02] active:scale-95 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-board-panel"
               >
                 Join Room
               </button>
@@ -89,11 +90,11 @@ export default function Home() {
               <button
                 onClick={handleCreate}
                 disabled={busy}
-                className="bg-accent text-board-bg font-semibold rounded-xl py-3 hover:scale-[1.02] active:scale-95 transition-transform disabled:opacity-50"
+                className="btn-gradient text-board-bg font-semibold rounded-xl py-3 hover:scale-[1.02] active:scale-95 transition-transform disabled:opacity-50 disabled:hover:scale-100"
               >
                 {busy ? 'Creating…' : 'Create Room'}
               </button>
-              <button onClick={() => setMode('home')} className="text-white/40 text-sm hover:text-white">
+              <button onClick={() => setMode('home')} className="text-white/40 text-sm hover:text-white transition-colors">
                 ← Back
               </button>
             </div>
@@ -107,16 +108,17 @@ export default function Home() {
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 maxLength={6}
                 placeholder="ROOM CODE"
-                className="w-full bg-board-panelLight rounded-xl px-4 py-3 text-center tracking-[0.3em] font-display uppercase outline-none focus:ring-2 focus:ring-accent"
+                aria-label="Room code"
+                className="w-full bg-board-panelLight/80 rounded-xl px-4 py-3 text-center tracking-[0.3em] font-display uppercase outline-none focus:ring-2 focus:ring-accent"
               />
               <button
                 onClick={handleJoin}
                 disabled={busy}
-                className="bg-accent text-board-bg font-semibold rounded-xl py-3 hover:scale-[1.02] active:scale-95 transition-transform disabled:opacity-50"
+                className="btn-gradient text-board-bg font-semibold rounded-xl py-3 hover:scale-[1.02] active:scale-95 transition-transform disabled:opacity-50 disabled:hover:scale-100"
               >
                 {busy ? 'Joining…' : 'Join Room'}
               </button>
-              <button onClick={() => setMode('home')} className="text-white/40 text-sm hover:text-white">
+              <button onClick={() => setMode('home')} className="text-white/40 text-sm hover:text-white transition-colors">
                 ← Back
               </button>
             </div>

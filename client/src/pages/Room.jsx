@@ -197,13 +197,13 @@ export default function Room() {
           <div className="flex items-center gap-2">
             <button
               onClick={copyCode}
-              className="bg-board-panel border border-board-border rounded-full px-4 py-2 text-sm font-mono tracking-widest hover:bg-board-panelLight transition-colors"
+              className="glass-panel-light rounded-full px-4 py-2 text-sm font-mono tracking-widest hover:brightness-125 transition-all"
             >
               {copied ? 'Copied!' : code.toUpperCase()}
             </button>
             <button
               onClick={shareRoom}
-              className="bg-board-panel border border-board-border rounded-full px-4 py-2 text-sm hover:bg-board-panelLight transition-colors"
+              className="glass-panel-light rounded-full px-4 py-2 text-sm hover:brightness-125 transition-all"
             >
               Share
             </button>
@@ -219,8 +219,8 @@ export default function Room() {
         {!game?.started ? (
           // ---------------- LOBBY ----------------
           <div className="grid sm:grid-cols-[1fr_320px] gap-6">
-            <div className="bg-board-panel border border-board-border rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-4">
-              <div className="text-5xl">🕹️</div>
+            <div className="glass-panel rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-4">
+              <div className="text-5xl animate-bounce">🕹️</div>
               <h2 className="font-display text-2xl">Waiting for players…</h2>
               <p className="text-white/50 max-w-sm">
                 Share the room code <span className="font-mono text-accent">{code.toUpperCase()}</span> with friends.
@@ -230,7 +230,7 @@ export default function Room() {
                 <button
                   onClick={handleStart}
                   disabled={room.players.length < 2}
-                  className="mt-2 bg-accent text-board-bg font-semibold rounded-full px-8 py-3 hover:scale-105 active:scale-95 transition-transform disabled:opacity-40 disabled:hover:scale-100"
+                  className="mt-2 btn-gradient text-board-bg font-semibold rounded-full px-8 py-3 hover:scale-105 active:scale-95 transition-transform disabled:opacity-40 disabled:hover:scale-100"
                 >
                   {room.players.length < 2 ? 'Need at least 2 players' : `Start Game (${room.players.length})`}
                 </button>
@@ -245,7 +245,7 @@ export default function Room() {
           <div className="grid lg:grid-cols-[280px_1fr] gap-6">
             <div className="flex flex-col gap-4 order-2 lg:order-1">
               <PlayerList room={room} game={game} selfId={selfId} />
-              <div className="bg-board-panel rounded-2xl p-4 border border-board-border flex flex-col items-center gap-3">
+              <div className="glass-panel rounded-2xl p-4 flex flex-col items-center gap-3">
                 <p className="text-sm text-white/60 text-center">
                   {isMyTurn ? (
                     <span className="text-accent font-semibold">Your turn!</span>

@@ -74,7 +74,7 @@ export default function Chat({ selfId, open, onToggle, onOpened }) {
       <button
         type="button"
         onClick={onToggle}
-        className="fixed bottom-5 right-5 z-40 bg-accent text-board-bg rounded-full w-14 h-14 shadow-2xl flex items-center justify-center text-2xl hover:scale-105 active:scale-95 transition-transform"
+        className="btn-gradient fixed bottom-5 right-5 z-40 text-board-bg rounded-full w-14 h-14 shadow-2xl flex items-center justify-center text-2xl hover:scale-105 active:scale-95 transition-transform"
         aria-label="Toggle chat"
       >
         💬
@@ -86,7 +86,7 @@ export default function Chat({ selfId, open, onToggle, onOpened }) {
       </button>
 
       <div
-        className={`fixed z-40 top-0 right-0 h-full w-full sm:w-96 bg-board-panel border-l border-board-border shadow-2xl transition-transform duration-300 flex flex-col
+        className={`fixed z-40 top-0 right-0 h-full w-full sm:w-96 glass-panel border-l border-board-border shadow-2xl transition-transform duration-300 flex flex-col
           ${open ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-board-border">
@@ -137,7 +137,7 @@ export default function Chat({ selfId, open, onToggle, onOpened }) {
           <button
             onClick={sendMessage}
             disabled={!draft.trim()}
-            className="bg-accent text-board-bg rounded-full w-10 h-10 flex items-center justify-center disabled:opacity-40 hover:scale-105 active:scale-95 transition-transform"
+            className="btn-gradient text-board-bg rounded-full w-10 h-10 flex items-center justify-center disabled:opacity-40 hover:scale-105 active:scale-95 transition-transform"
             aria-label="Send message"
           >
             ➤
