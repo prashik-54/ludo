@@ -27,12 +27,19 @@ export default {
         body: ['"Inter"', 'system-ui', 'sans-serif'],
       },
       keyframes: {
+        // A full rotate(0->360deg) is nearly invisible on a symmetric
+        // rounded square — at 90/180/270deg it looks almost identical to
+        // 0deg, so it didn't actually read as "rolling." This wobble/shake
+        // (small rotation range + vertical bounce) is what real "dice
+        // rolling" UI patterns use for a 2D square instead of a full spin.
         'dice-roll': {
-          '0%': { transform: 'rotate(0deg) scale(1)' },
-          '25%': { transform: 'rotate(90deg) scale(1.1)' },
-          '50%': { transform: 'rotate(180deg) scale(0.95)' },
-          '75%': { transform: 'rotate(270deg) scale(1.1)' },
-          '100%': { transform: 'rotate(360deg) scale(1)' },
+          '0%, 100%': { transform: 'translateY(0) rotate(0deg) scale(1)' },
+          '10%': { transform: 'translateY(-6px) rotate(-14deg) scale(1.06)' },
+          '25%': { transform: 'translateY(2px) rotate(11deg) scale(0.95)' },
+          '40%': { transform: 'translateY(-5px) rotate(-9deg) scale(1.05)' },
+          '55%': { transform: 'translateY(2px) rotate(7deg) scale(0.97)' },
+          '70%': { transform: 'translateY(-3px) rotate(-5deg) scale(1.03)' },
+          '85%': { transform: 'translateY(1px) rotate(2deg) scale(1)' },
         },
         'token-pop': {
           '0%': { transform: 'scale(0.5)', opacity: '0' },
@@ -52,7 +59,7 @@ export default {
         },
       },
       animation: {
-        'dice-roll': 'dice-roll 0.6s ease-in-out',
+        'dice-roll': 'dice-roll 0.8s cubic-bezier(0.34, 1.2, 0.4, 1)',
         'token-pop': 'token-pop 0.2s ease-out',
         'pulse-ring': 'pulse-ring 1.2s infinite',
         'slide-up': 'slide-up 0.25s ease-out',

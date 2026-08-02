@@ -13,11 +13,24 @@ const {
 const TOKENS_PER_PLAYER = 4;
 
 /**
+ * Which colors get assigned, and in what seating order, based on player
+ * count. For 2 players this deliberately does NOT just take the first two
+ * entries of COLORS — red and green are adjacent corners on the board
+ * (top-left / top-right), which is an unfair, cramped layout for a 2-player
+ * game. Red and yellow sit diagonally opposite each other, matching how a
+ * physical Ludo board is normally set up for two players.
+ */
+function pickColors(playerCount) {
+  if (playerCount === 2) return ['red', 'yellow'];
+  return COLORS.slice(0, playerCount);
+}
+
+/**
  * Build a brand-new game state for a room once the host starts the game.
  * players: array of { id, name } in join order.
  */
 function createGameState(players) {
-  const colors = COLORS.slice(0, players.length);
+  const colors = pickColors(players.length);
 
   const tokens = {};
   players.forEach((p, idx) => {

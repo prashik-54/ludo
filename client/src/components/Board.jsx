@@ -114,12 +114,19 @@ export default function Board({ game, selfColor, onTokenClick }) {
             ...(isHomeLane
               ? { backgroundColor: COLOR_HEX[homeColor] }
               : startColor
-              ? { backgroundColor: `${COLOR_HEX[startColor]}33` }
+              ? { backgroundColor: `${COLOR_HEX[startColor]}66` }
               : undefined),
           }}
         >
           {isSafe && (
-            <span className="text-[8px] sm:text-xs opacity-60 select-none">★</span>
+            <span
+              className="w-[65%] h-[65%] rounded-full flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(255,255,255,0.35)', border: '1.5px solid rgba(0,0,0,0.25)' }}
+            >
+              <span className="text-[9px] sm:text-sm leading-none text-accent" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.5)' }}>
+                ★
+              </span>
+            </span>
           )}
         </div>
       );
@@ -178,7 +185,15 @@ export default function Board({ game, selfColor, onTokenClick }) {
           }}
         >
           <div className="relative w-full h-full rotate-45 overflow-hidden rounded-sm">
-            <div className="absolute inset-0" style={{ background: `conic-gradient(${COLOR_HEX.red} 0deg 90deg, ${COLOR_HEX.blue} 90deg 180deg, ${COLOR_HEX.yellow} 180deg 270deg, ${COLOR_HEX.green} 270deg 360deg)` }} />
+            {/* Each quadrant of this conic-gradient, after the 45° rotation
+                below, ends up pointing toward one of the 4 edge midpoints:
+                the 0-90deg slice points east, 90-180 south, 180-270 west,
+                270-360 north. Home-lane entrances are: red=west (row7,col6),
+                green=north (row6,col7), yellow=east (row7,col8), blue=south
+                (row8,col7) — so the color order below is yellow/blue/red/
+                green, NOT the more "obvious" red/blue/yellow/green (which
+                silently swaps red and yellow to point at each other's lanes). */}
+            <div className="absolute inset-0" style={{ background: `conic-gradient(${COLOR_HEX.yellow} 0deg 90deg, ${COLOR_HEX.blue} 90deg 180deg, ${COLOR_HEX.red} 180deg 270deg, ${COLOR_HEX.green} 270deg 360deg)` }} />
           </div>
           {/* finished tokens stack here */}
           <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-[1px] p-1">
