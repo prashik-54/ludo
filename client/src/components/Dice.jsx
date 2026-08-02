@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { COLOR_HEX } from '../utils/constants';
+import { playDiceRoll } from '../utils/sound';
 
 const PIP_LAYOUTS = {
   1: [[50, 50]],
@@ -12,9 +13,16 @@ const PIP_LAYOUTS = {
 
 export default function Dice({ value, rolling, canRoll, onRoll, turnColor }) {
   const [displayValue, setDisplayValue] = useState(value || 1);
+  // Tracks whether we've already fired the roll sound for the current
+  // `rolling` streak, so re-renders while rolling=true don't retrigger it.
+  const soundFiredRef = useRef(false);
 
   useEffect(() => {
     if (rolling) {
+      if (!soundFiredRef.current) {
+        playDiceRoll();
+        soundFiredRef.current = true;
+      }
       let ticks = 0;
       const interval = setInterval(() => {
         setDisplayValue(1 + Math.floor(Math.random() * 6));
@@ -23,7 +31,9 @@ export default function Dice({ value, rolling, canRoll, onRoll, turnColor }) {
       }, 60);
       return () => clearInterval(interval);
     }
+    soundFiredRef.current = false;
     if (value) setDisplayValue(value);
+    return undefined;
   }, [rolling, value]);
 
   const pips = PIP_LAYOUTS[displayValue] || PIP_LAYOUTS[1];
@@ -34,9 +44,9 @@ export default function Dice({ value, rolling, canRoll, onRoll, turnColor }) {
         type="button"
         onClick={onRoll}
         disabled={!canRoll}
-        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white shadow-xl border-4 transition-all
+        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border-4 transition-all
           ${canRoll ? 'cursor-pointer hover:scale-105 active:scale-95' : 'opacity-60 cursor-not-allowed'}
-          ${rolling ? 'animate-dice-roll' : ''}`}
+          ${rolling ? 'animate-dice-roll dice-glow' : 'shadow-xl'}`}
         style={{ borderColor: turnColor ? COLOR_HEX[turnColor] : '#333' }}
         aria-label="Roll dice"
       >

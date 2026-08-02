@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import socket from '../socket/socket';
+import { playChat } from '../utils/sound';
 
 export default function Chat({ selfId, open, onToggle, onOpened }) {
   const [messages, setMessages] = useState([]);
@@ -15,6 +16,7 @@ export default function Chat({ selfId, open, onToggle, onOpened }) {
     const onReceive = (msg) => {
       setMessages((prev) => [...prev, msg]);
       if (!open) setUnread((n) => n + 1);
+      if (msg.playerId !== selfId) playChat();
     };
     const onTyping = ({ playerId, name }) => {
       if (playerId === selfId) return;

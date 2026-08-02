@@ -16,7 +16,7 @@ export default function PlayerList({ room, game, selfId }) {
             <li
               key={p.id}
               className={`flex items-center justify-between rounded-xl px-3 py-2 transition-colors
-                ${isTurn ? 'bg-accent/20 ring-1 ring-accent' : 'bg-board-panelLight'}`}
+                ${isTurn ? 'bg-accent/20 ring-1 ring-accent turn-glow' : 'bg-board-panelLight'}`}
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span

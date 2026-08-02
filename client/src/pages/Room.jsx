@@ -6,9 +6,11 @@ import { LoadingScreen, ConnectionStatus } from '../components/StatusWidgets';
 import PlayerList from '../components/PlayerList';
 import Board from '../components/Board';
 import Dice from '../components/Dice';
+import TurnTimer from '../components/TurnTimer';
 import Chat from '../components/Chat';
 import WinnerModal from '../components/WinnerModal';
 import { COLOR_HEX } from '../utils/constants';
+import { isMuted, toggleMuted, onMuteChange, playTokenMove, playCapture, playTokenHome, playPlayerJoined, playVictory } from '../utils/sound';
 
 export default function Room() {
   const { code } = useParams();
@@ -24,9 +26,12 @@ export default function Room() {
   const [rolling, setRolling] = useState(false);
   const [winnerInfo, setWinnerInfo] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [muted, setMutedState] = useState(isMuted());
 
   const selfIdRef = useRef(selfId);
   selfIdRef.current = selfId;
+
+  useEffect(() => onMuteChange(setMutedState), []);
 
   // ---- connect / reconnect handshake ----
   useEffect(() => {
@@ -75,7 +80,10 @@ export default function Room() {
   useEffect(() => {
     const onRoomState = (r) => setRoom(r);
     const onGameState = (g) => setGame(g);
-    const onPlayerJoined = ({ name }) => showToast(`${name} joined the room`, 'info');
+    const onPlayerJoined = ({ name }) => {
+      showToast(`${name} joined the room`, 'info');
+      playPlayerJoined();
+    };
     const onPlayerLeft = ({ name, temporary }) =>
       showToast(temporary ? `${name} disconnected` : `${name} left the room`, 'info');
     const onStartGame = () => showToast('Game started! 🎲', 'success');
@@ -86,10 +94,25 @@ export default function Room() {
     const onTokenMoved = (result) => {
       if (result.captured?.length) {
         result.captured.forEach((c) => showToast(`${c.color} token was captured!`, 'info'));
+        playCapture();
+      } else {
+        playTokenMove();
       }
-      if (result.finished) showToast('A token reached home! 🏠', 'success');
+      if (result.finished) {
+        showToast('A token reached home! 🏠', 'success');
+        playTokenHome();
+      }
     };
-    const onWinner = (info) => setWinnerInfo(info);
+    // Server-authoritative turn changes (see socketHandler.js). We only care
+    // about the `timedOut` flag here for a toast — the actual new turn state
+    // arrives via the `game-state` broadcast that always follows this event.
+    const onNextTurn = ({ timedOut }) => {
+      if (timedOut) showToast("Time's up — turn passed", 'info');
+    };
+    const onWinner = (info) => {
+      setWinnerInfo(info);
+      playVictory();
+    };
     const onGameReset = () => {
       setWinnerInfo(null);
       showToast('Back to the lobby', 'info');
@@ -102,6 +125,7 @@ export default function Room() {
     socket.on('start-game', onStartGame);
     socket.on('dice-rolled', onDiceRolled);
     socket.on('token-moved', onTokenMoved);
+    socket.on('next-turn', onNextTurn);
     socket.on('winner', onWinner);
     socket.on('game-reset', onGameReset);
 
@@ -113,6 +137,7 @@ export default function Room() {
       socket.off('start-game', onStartGame);
       socket.off('dice-rolled', onDiceRolled);
       socket.off('token-moved', onTokenMoved);
+      socket.off('next-turn', onNextTurn);
       socket.off('winner', onWinner);
       socket.off('game-reset', onGameReset);
     };
@@ -196,6 +221,14 @@ export default function Room() {
           </h1>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => toggleMuted()}
+              className="glass-panel-light rounded-full w-9 h-9 flex items-center justify-center text-sm hover:brightness-125 transition-all"
+              aria-label={muted ? 'Unmute sound' : 'Mute sound'}
+              title={muted ? 'Unmute sound' : 'Mute sound'}
+            >
+              {muted ? '🔇' : '🔊'}
+            </button>
+            <button
               onClick={copyCode}
               className="glass-panel-light rounded-full px-4 py-2 text-sm font-mono tracking-widest hover:brightness-125 transition-all"
             >
@@ -246,18 +279,21 @@ export default function Room() {
             <div className="flex flex-col gap-4 order-2 lg:order-1">
               <PlayerList room={room} game={game} selfId={selfId} />
               <div className="glass-panel rounded-2xl p-4 flex flex-col items-center gap-3">
-                <p className="text-sm text-white/60 text-center">
-                  {isMyTurn ? (
-                    <span className="text-accent font-semibold">Your turn!</span>
-                  ) : (
-                    <>
-                      <span style={{ color: currentTurnPlayer ? COLOR_HEX[currentTurnPlayer.color] : undefined }} className="font-semibold">
-                        {currentTurnPlayer?.name || '...'}
-                      </span>{' '}
-                      is playing
-                    </>
-                  )}
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-white/60 text-center">
+                    {isMyTurn ? (
+                      <span className="text-accent font-semibold">Your turn!</span>
+                    ) : (
+                      <>
+                        <span style={{ color: currentTurnPlayer ? COLOR_HEX[currentTurnPlayer.color] : undefined }} className="font-semibold">
+                          {currentTurnPlayer?.name || '...'}
+                        </span>{' '}
+                        is playing
+                      </>
+                    )}
+                  </p>
+                  <TurnTimer deadline={game.turnDeadline} />
+                </div>
                 <Dice
                   value={game.diceValue}
                   rolling={rolling}
