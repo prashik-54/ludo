@@ -31,20 +31,47 @@ export default function Token({ color, row, col, offsetPct = 0, highlighted, onC
       }}
     >
       <span
-        className={`block rounded-full shadow-md animate-token-pop transition-transform duration-150 ease-out
-          ${onClick ? 'hover:scale-110 active:scale-95' : ''}`}
+        className={`relative block transition-transform duration-150 ease-out ${onClick ? 'hover:scale-110 active:scale-95' : ''}`}
         style={{
-          width: '78%',
-          height: '78%',
-          backgroundColor: COLOR_HEX[color],
-          border: `2px solid ${COLOR_HEX_DARK[color]}`,
-          boxShadow: highlighted
-            ? `0 0 0 4px ${COLOR_HEX[color]}55, 0 2px 6px rgba(0,0,0,0.4)`
-            : '0 2px 4px rgba(0,0,0,0.35)',
+          width: '82%',
+          height: '82%',
           animation: highlighted ? 'pulse-ring 1.2s infinite' : undefined,
+          borderRadius: '9999px',
         }}
       >
-        <span className="block w-full h-full rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.25)' }} />
+        {/* base "collar" — sits slightly below/behind the head, giving the
+            token a standing pawn silhouette instead of a flat dot. */}
+        <span
+          className="absolute rounded-full animate-token-pop"
+          style={{
+            bottom: 0,
+            left: '8%',
+            width: '84%',
+            height: '46%',
+            backgroundColor: COLOR_HEX_DARK[color],
+            boxShadow: '0 1px 2px rgba(0,0,0,0.4)',
+          }}
+        />
+        {/* head */}
+        <span
+          className="absolute rounded-full animate-token-pop"
+          style={{
+            top: 0,
+            left: '10%',
+            width: '80%',
+            height: '80%',
+            backgroundColor: COLOR_HEX[color],
+            border: `2px solid ${COLOR_HEX_DARK[color]}`,
+            boxShadow: highlighted
+              ? `0 0 0 4px ${COLOR_HEX[color]}55, 0 2px 5px rgba(0,0,0,0.4)`
+              : '0 2px 4px rgba(0,0,0,0.35)',
+          }}
+        >
+          <span
+            className="block w-full h-full rounded-full"
+            style={{ background: 'radial-gradient(circle at 35% 28%, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%)' }}
+          />
+        </span>
       </span>
     </button>
   );

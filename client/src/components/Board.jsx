@@ -18,6 +18,18 @@ const YARD_TINT = {
   blue: 'bg-ludo-blue/90',
 };
 
+// Marks each color's entry square onto the shared track with an arrow
+// pointing in that color's direction of travel — matches the reference
+// board. Derived directly from TRACK_CELLS (the same data resolveTokenCell
+// uses for real movement) rather than eyeballed, so if the track layout
+// ever changes these can't silently point the wrong way.
+const ENTRY_ARROWS = [
+  { color: 'red', cell: TRACK_CELLS[0], glyph: '→' }, // [6,1], travels rightward along row 6
+  { color: 'green', cell: TRACK_CELLS[13], glyph: '↓' }, // [1,8], travels downward along col 8
+  { color: 'yellow', cell: TRACK_CELLS[26], glyph: '←' }, // [8,13], travels leftward along row 8
+  { color: 'blue', cell: TRACK_CELLS[39], glyph: '↑' }, // [13,6], travels upward along col 6
+];
+
 function cellKey(row, col) {
   return `${row}-${col}`;
 }
@@ -121,12 +133,14 @@ export default function Board({ game, selfColor, onTokenClick }) {
         >
           {isSafe && (
             <span
-              className="w-[65%] h-[65%] rounded-full flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(255,255,255,0.35)', border: '1.5px solid rgba(0,0,0,0.25)' }}
+              className="text-sm sm:text-lg leading-none select-none"
+              style={{
+                color: '#ffffff',
+                WebkitTextStroke: '1px rgba(0,0,0,0.35)',
+                filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.35))',
+              }}
             >
-              <span className="text-[9px] sm:text-sm leading-none text-accent" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.5)' }}>
-                ★
-              </span>
+              ★
             </span>
           )}
         </div>
@@ -178,7 +192,9 @@ export default function Board({ game, selfColor, onTokenClick }) {
             `((row + 0.5) / GRID_SIZE) * 100` formula Token.jsx uses, off the
             same YARD_SLOTS coordinates resolveTokenCell resolves an empty
             token to. Same math, same data source as the real token — they
-            can't drift apart. */}
+            can't drift apart. Sized/tinted to read as a classic die-face
+            "4" dot pattern (matching the reference board), with the real
+            pawn token layered on top once a token occupies that slot. */}
         {COLORS.map((color) =>
           YARD_SLOTS[color].map(([row, col], i) => (
             <div
@@ -187,14 +203,36 @@ export default function Board({ game, selfColor, onTokenClick }) {
               style={{
                 top: `${((row + 0.5) / GRID_SIZE) * 100}%`,
                 left: `${((col + 0.5) / GRID_SIZE) * 100}%`,
-                width: 'max(9%, 26px)',
-                height: 'max(9%, 26px)',
-                border: `2px solid ${COLOR_HEX[color]}`,
-                backgroundColor: `${COLOR_HEX[color]}22`,
+                width: 'max(11%, 30px)',
+                height: 'max(11%, 30px)',
+                border: `3px solid ${COLOR_HEX[color]}`,
+                backgroundColor: `${COLOR_HEX[color]}33`,
               }}
             />
           ))
         )}
+
+        {/* entry-point arrows — see ENTRY_ARROWS above for how each cell/
+            direction was derived. */}
+        {ENTRY_ARROWS.map(({ color, cell, glyph }) => (
+          <div
+            key={color}
+            className="absolute flex items-center justify-center pointer-events-none -translate-x-1/2 -translate-y-1/2"
+            style={{
+              top: `${((cell[0] + 0.5) / GRID_SIZE) * 100}%`,
+              left: `${((cell[1] + 0.5) / GRID_SIZE) * 100}%`,
+              width: `${(1 / GRID_SIZE) * 100}%`,
+              height: `${(1 / GRID_SIZE) * 100}%`,
+            }}
+          >
+            <span
+              className="text-xs sm:text-base font-bold leading-none"
+              style={{ color: COLOR_HEX[color], textShadow: '0 1px 1px rgba(0,0,0,0.25)' }}
+            >
+              {glyph}
+            </span>
+          </div>
+        ))}
 
         {/* center home hub — four triangles pointing inward */}
         <div
