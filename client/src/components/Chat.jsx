@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import socket from '../socket/socket';
 import { playChat } from '../utils/sound';
 
-export default function Chat({ selfId, open, onToggle, onOpened }) {
+export default function Chat({ selfId, open, onToggle, onOpened, raised = false }) {
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState('');
   const [typingUsers, setTypingUsers] = useState(new Map());
@@ -76,7 +76,8 @@ export default function Chat({ selfId, open, onToggle, onOpened }) {
       <button
         type="button"
         onClick={onToggle}
-        className="btn-gradient fixed bottom-5 right-5 z-40 text-board-bg rounded-full w-14 h-14 shadow-2xl flex items-center justify-center text-2xl hover:scale-105 active:scale-95 transition-transform"
+        className={`btn-gradient fixed right-5 z-40 text-board-bg rounded-full w-14 h-14 shadow-2xl flex items-center justify-center text-2xl hover:scale-105 active:scale-95 transition-transform
+          ${raised ? 'bottom-24 lg:bottom-5' : 'bottom-5'}`}
         aria-label="Toggle chat"
       >
         💬

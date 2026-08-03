@@ -4,6 +4,7 @@ import {
   TRACK_CELLS,
   HOME_COLUMNS,
   YARD_BLOCKS,
+  YARD_SLOTS,
   isSafeTrackCell,
   resolveTokenCell,
 } from '../utils/boardLayout';
@@ -147,7 +148,14 @@ export default function Board({ game, selfColor, onTokenClick }) {
           {cells}
         </div>
 
-        {/* yard blocks */}
+        {/* yard blocks — colored backdrop only now; the dots that mark each
+            token's actual resting spot are drawn separately below, in the
+            SAME coordinate space real tokens use (see the comment there).
+            The previous version positioned these dots via a nested CSS Grid
+            local to each yard block, while actual tokens are positioned via
+            percent-of-full-board — two different coordinate systems that
+            didn't agree, which is why the dots and the real tokens never
+            lined up. */}
         {COLORS.map((color) => {
           const b = YARD_BLOCKS[color];
           return (
@@ -161,18 +169,32 @@ export default function Board({ game, selfColor, onTokenClick }) {
                 height: `${(6 / GRID_SIZE) * 100}%`,
               }}
             >
-              <div className="w-[78%] h-[78%] bg-[#f4f1ea] rounded-lg absolute top-[11%] left-[11%] grid grid-cols-2 grid-rows-2 place-items-center">
-                {[0, 1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="w-[55%] h-[55%] rounded-full border-2"
-                    style={{ borderColor: COLOR_HEX[color], backgroundColor: `${COLOR_HEX[color]}22` }}
-                  />
-                ))}
-              </div>
+              <div className="w-[78%] h-[78%] bg-[#f4f1ea] rounded-lg absolute top-[11%] left-[11%]" />
             </div>
           );
         })}
+
+        {/* yard slot markers — drawn with the exact same
+            `((row + 0.5) / GRID_SIZE) * 100` formula Token.jsx uses, off the
+            same YARD_SLOTS coordinates resolveTokenCell resolves an empty
+            token to. Same math, same data source as the real token — they
+            can't drift apart. */}
+        {COLORS.map((color) =>
+          YARD_SLOTS[color].map(([row, col], i) => (
+            <div
+              key={`${color}-slot-${i}`}
+              className="absolute rounded-full -translate-x-1/2 -translate-y-1/2"
+              style={{
+                top: `${((row + 0.5) / GRID_SIZE) * 100}%`,
+                left: `${((col + 0.5) / GRID_SIZE) * 100}%`,
+                width: 'max(9%, 26px)',
+                height: 'max(9%, 26px)',
+                border: `2px solid ${COLOR_HEX[color]}`,
+                backgroundColor: `${COLOR_HEX[color]}22`,
+              }}
+            />
+          ))
+        )}
 
         {/* center home hub — four triangles pointing inward */}
         <div

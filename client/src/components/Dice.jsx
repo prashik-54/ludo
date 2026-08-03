@@ -11,7 +11,7 @@ const PIP_LAYOUTS = {
   6: [[25, 25], [25, 50], [25, 75], [75, 25], [75, 50], [75, 75]],
 };
 
-export default function Dice({ value, rolling, canRoll, onRoll, turnColor }) {
+export default function Dice({ value, rolling, canRoll, onRoll, turnColor, compact = false }) {
   const [displayValue, setDisplayValue] = useState(value || 1);
   // Tracks whether we've already fired the roll sound for the current
   // `rolling` streak, so re-renders while rolling=true don't retrigger it.
@@ -39,12 +39,13 @@ export default function Dice({ value, rolling, canRoll, onRoll, turnColor }) {
   const pips = PIP_LAYOUTS[displayValue] || PIP_LAYOUTS[1];
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className={`flex ${compact ? 'flex-row items-center gap-2' : 'flex-col items-center gap-3'}`}>
       <button
         type="button"
         onClick={onRoll}
         disabled={!canRoll}
-        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border-4 transition-all
+        className={`relative rounded-2xl bg-white border-4 transition-all shrink-0
+          ${compact ? 'w-14 h-14' : 'w-16 h-16 sm:w-20 sm:h-20'}
           ${canRoll ? 'cursor-pointer hover:scale-105 active:scale-95' : 'opacity-60 cursor-not-allowed'}
           ${rolling ? 'animate-dice-roll dice-glow' : 'shadow-xl'}`}
         style={{ borderColor: turnColor ? COLOR_HEX[turnColor] : '#333' }}
@@ -58,9 +59,11 @@ export default function Dice({ value, rolling, canRoll, onRoll, turnColor }) {
           />
         ))}
       </button>
-      <span className="text-xs text-white/60 font-body">
-        {canRoll ? 'Tap to roll' : rolling ? 'Rolling…' : 'Waiting…'}
-      </span>
+      {!compact && (
+        <span className="text-xs text-white/60 font-body">
+          {canRoll ? 'Tap to roll' : rolling ? 'Rolling…' : 'Waiting…'}
+        </span>
+      )}
     </div>
   );
 }
