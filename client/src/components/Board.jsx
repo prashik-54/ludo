@@ -234,27 +234,25 @@ export default function Board({ game, selfColor, onTokenClick }) {
           </div>
         ))}
 
-        {/* center home hub — four triangles pointing inward */}
+        {/* center home hub — four solid triangles meeting at the middle,
+            each pointing toward the edge its color's home column enters
+            from. Home-lane entrances are: green=north (row6,col7),
+            yellow=east (row7,col8), blue=south (row8,col7), red=west
+            (row7,col6). A conic-gradient started 45deg before the top
+            (`from -45deg`) puts a quadrant boundary exactly at each corner
+            of the square, which is what turns the 4 quadrants into 4
+            triangles filling a square (rather than a circle) — no
+            rotation/clipping needed, so nothing can overflow its box. */}
         <div
-          className="absolute"
+          className="absolute rounded-sm shadow-inner border border-black/10"
           style={{
             top: `${(6 / GRID_SIZE) * 100}%`,
             left: `${(6 / GRID_SIZE) * 100}%`,
             width: `${(3 / GRID_SIZE) * 100}%`,
             height: `${(3 / GRID_SIZE) * 100}%`,
+            background: `conic-gradient(from -45deg, ${COLOR_HEX.green} 0deg 90deg, ${COLOR_HEX.yellow} 90deg 180deg, ${COLOR_HEX.blue} 180deg 270deg, ${COLOR_HEX.red} 270deg 360deg)`,
           }}
         >
-          <div className="relative w-full h-full rotate-45 overflow-hidden rounded-sm">
-            {/* Each quadrant of this conic-gradient, after the 45° rotation
-                below, ends up pointing toward one of the 4 edge midpoints:
-                the 0-90deg slice points east, 90-180 south, 180-270 west,
-                270-360 north. Home-lane entrances are: red=west (row7,col6),
-                green=north (row6,col7), yellow=east (row7,col8), blue=south
-                (row8,col7) — so the color order below is yellow/blue/red/
-                green, NOT the more "obvious" red/blue/yellow/green (which
-                silently swaps red and yellow to point at each other's lanes). */}
-            <div className="absolute inset-0" style={{ background: `conic-gradient(${COLOR_HEX.yellow} 0deg 90deg, ${COLOR_HEX.blue} 90deg 180deg, ${COLOR_HEX.red} 180deg 270deg, ${COLOR_HEX.green} 270deg 360deg)` }} />
-          </div>
           {/* finished tokens stack here */}
           <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-[1px] p-1">
             {game &&
@@ -271,6 +269,30 @@ export default function Board({ game, selfColor, onTokenClick }) {
               )}
           </div>
         </div>
+
+        {/* small outward-pointing arrows at each corner of the center hub —
+            a decorative flourish matching the reference board. */}
+        {[
+          { top: 6, left: 6, glyph: '↖' },
+          { top: 6, left: 9, glyph: '↗' },
+          { top: 9, left: 9, glyph: '↘' },
+          { top: 9, left: 6, glyph: '↙' },
+        ].map(({ top, left, glyph }) => (
+          <div
+            key={glyph}
+            className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 select-none"
+            style={{
+              top: `${(top / GRID_SIZE) * 100}%`,
+              left: `${(left / GRID_SIZE) * 100}%`,
+              fontSize: 'clamp(8px, 1.6vw, 13px)',
+              lineHeight: 1,
+              color: 'rgba(0,0,0,0.55)',
+              fontWeight: 700,
+            }}
+          >
+            {glyph}
+          </div>
+        ))}
 
         {/* tokens on the track / home lanes / yards */}
         {game &&

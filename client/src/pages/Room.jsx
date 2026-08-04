@@ -210,19 +210,19 @@ export default function Room() {
   const currentTurnPlayer = game?.playersOrder?.find((p) => p.id === game.currentTurnPlayerId);
 
   return (
-    <div className="min-h-screen px-4 py-6 pb-24">
+    <div className="min-h-screen px-3 py-3 sm:px-4 sm:py-6 pb-24">
       <ConnectionStatus connected={connected} />
 
       <div className="max-w-5xl mx-auto">
-        {/* header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <h1 className="font-display text-2xl sm:text-3xl">
+        {/* header — condensed on mobile so the dice/board below don't get pushed down the page */}
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 sm:gap-3 sm:mb-6">
+          <h1 className="font-display text-lg sm:text-2xl md:text-3xl">
             Ludo <span className="text-accent">Online</span>
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => toggleMuted()}
-              className="glass-panel-light rounded-full w-9 h-9 flex items-center justify-center text-sm hover:brightness-125 transition-all"
+              className="glass-panel-light rounded-full w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-sm hover:brightness-125 transition-all"
               aria-label={muted ? 'Unmute sound' : 'Mute sound'}
               title={muted ? 'Unmute sound' : 'Mute sound'}
             >
@@ -230,19 +230,19 @@ export default function Room() {
             </button>
             <button
               onClick={copyCode}
-              className="glass-panel-light rounded-full px-4 py-2 text-sm font-mono tracking-widest hover:brightness-125 transition-all"
+              className="glass-panel-light rounded-full px-2.5 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-mono tracking-widest hover:brightness-125 transition-all"
             >
               {copied ? 'Copied!' : code.toUpperCase()}
             </button>
             <button
               onClick={shareRoom}
-              className="glass-panel-light rounded-full px-4 py-2 text-sm hover:brightness-125 transition-all"
+              className="glass-panel-light rounded-full px-2.5 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm hover:brightness-125 transition-all"
             >
               Share
             </button>
             <button
               onClick={handleLeave}
-              className="bg-red-900/40 border border-red-500/30 text-red-300 rounded-full px-4 py-2 text-sm hover:bg-red-900/60 transition-colors"
+              className="bg-red-900/40 border border-red-500/30 text-red-300 rounded-full px-2.5 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm hover:bg-red-900/60 transition-colors"
             >
               Leave
             </button>
@@ -275,8 +275,52 @@ export default function Room() {
           </div>
         ) : (
           // ---------------- GAME ----------------
-          <div className="grid lg:grid-cols-[280px_1fr] gap-6">
-            <div className="flex flex-col gap-4 order-2 lg:order-1">
+          // Mobile layout is deliberately NOT a mirror of desktop: the dice
+          // (something you tap every turn) and the board (where you tap a
+          // token right after) have to both be on-screen together with no
+          // scrolling in between, so on mobile they're stacked directly on
+          // top of each other at the top of the page. The player list isn't
+          // needed to take a turn, so it moves below the board on mobile
+          // instead of above it. Desktop has room for a full sidebar, so it
+          // keeps the original three-stacked-panel layout via lg: overrides.
+          <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[280px_1fr] lg:gap-6">
+            {/* Compact turn + dice bar — mobile only, always above the board */}
+            <div className="lg:hidden glass-panel rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-white/60 truncate">
+                    {isMyTurn ? (
+                      <span className="text-accent font-semibold">Your turn!</span>
+                    ) : (
+                      <>
+                        <span style={{ color: currentTurnPlayer ? COLOR_HEX[currentTurnPlayer.color] : undefined }} className="font-semibold">
+                          {currentTurnPlayer?.name || '...'}
+                        </span>{' '}
+                        is playing
+                      </>
+                    )}
+                  </p>
+                  <TurnTimer deadline={game.turnDeadline} />
+                </div>
+                {isMyTurn && game.diceRolled && game.movableTokens.length > 0 && (
+                  <p className="text-xs text-accent animate-pulse">Tap a glowing token to move it</p>
+                )}
+                {isMyTurn && game.diceRolled && game.movableTokens.length === 0 && (
+                  <p className="text-xs text-white/40">No valid moves — passing turn…</p>
+                )}
+              </div>
+              <Dice
+                value={game.diceValue}
+                rolling={rolling}
+                canRoll={isMyTurn && !game.diceRolled}
+                onRoll={handleRoll}
+                turnColor={currentTurnPlayer?.color}
+                compact
+              />
+            </div>
+
+            {/* Desktop sidebar — player list + full dice panel */}
+            <div className="hidden lg:flex flex-col gap-4 lg:order-1">
               <PlayerList room={room} game={game} selfId={selfId} />
               <div className="glass-panel rounded-2xl p-4 flex flex-col items-center gap-3">
                 <div className="flex items-center gap-3">
@@ -310,8 +354,13 @@ export default function Room() {
               </div>
             </div>
 
-            <div className="order-1 lg:order-2">
+            <div className="lg:order-2">
               <Board game={game} selfColor={isMyTurn ? selfColor : null} onTokenClick={handleTokenClick} />
+            </div>
+
+            {/* Player list — mobile only, below the board (not needed to play a turn) */}
+            <div className="lg:hidden">
+              <PlayerList room={room} game={game} selfId={selfId} />
             </div>
           </div>
         )}
